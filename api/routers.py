@@ -42,8 +42,7 @@ async def login_user(user: UserCreate):
 async def create_booking(booking: BookingCreate, current_user: str = Depends(get_current_user)):
     db = Database()
     model = BookingModel(db)
-    if current_user != "admin":
-        raise HTTPException(status_code=403, detail="Admin access required")
+    # Обычные пользователи могут создавать бронирования
     total_price = 0
     program = next((p for p in model.get_programs() if p["id"] == booking.program_id), None)
     if not program:
@@ -90,6 +89,15 @@ async def delete_booking(booking_id: int, current_user: str = Depends(get_curren
         raise HTTPException(status_code=403, detail="Admin access required")
     model.delete_booking(booking_id)
     return {"message": "Booking deleted"}
+
+@app.put("/bookings/{booking_id}/complete")
+async def mark_booking_completed(booking_id: int, current_user: str = Depends(get_current_user)):
+    db = Database()
+    model = BookingModel(db)
+    if current_user != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    model.mark_booking_completed(booking_id)
+    return {"message": "Booking marked as completed"}
 
 @app.get("/programs/")
 async def get_programs(current_user: str = Depends(get_current_user)):

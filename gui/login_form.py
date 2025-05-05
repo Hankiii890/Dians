@@ -1,5 +1,7 @@
 import requests
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QMessageBox
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QMessageBox, QGridLayout
+from PyQt5.QtCore import Qt
+
 
 class LoginForm(QWidget):
     def __init__(self, on_login_success):
@@ -8,45 +10,89 @@ class LoginForm(QWidget):
         self.init_ui()
 
     def init_ui(self):
+        # Основной макет
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setSpacing(15)
+
+        # GridLayout для полей ввода
+        grid = QGridLayout()
+        grid.setSpacing(10)
 
         # Username
         self.username = QLineEdit()
-        self.username.setPlaceholderText("Username")
-        layout.addWidget(QLabel("Username:"))
-        layout.addWidget(self.username)
+        self.username.setPlaceholderText("Имя пользователя")
+        grid.addWidget(QLabel("Имя пользователя:"), 0, 0)
+        grid.addWidget(self.username, 0, 1)
 
         # Password
         self.password = QLineEdit()
-        self.password.setPlaceholderText("Password")
+        self.password.setPlaceholderText("Пароль")
         self.password.setEchoMode(QLineEdit.Password)
-        layout.addWidget(QLabel("Password:"))
-        layout.addWidget(self.password)
+        grid.addWidget(QLabel("Пароль:"), 1, 0)
+        grid.addWidget(self.password, 1, 1)
 
         # Role (for registration)
         self.role = QComboBox()
-        self.role.addItems(["user", "admin"])
-        layout.addWidget(QLabel("Role (for registration):"))
-        layout.addWidget(self.role)
+        self.role.addItems(["Пользователь", "Администратор"])
+        grid.addWidget(QLabel("Роль (для регистрации):"), 2, 0)
+        grid.addWidget(self.role, 2, 1)
+
+        layout.addLayout(grid)
 
         # Buttons
         btn_layout = QHBoxLayout()
-        self.login_btn = QPushButton("Login")
+        btn_layout.setSpacing(10)
+        self.login_btn = QPushButton("Войти")
         self.login_btn.clicked.connect(self.login)
         btn_layout.addWidget(self.login_btn)
 
-        self.register_btn = QPushButton("Register")
+        self.register_btn = QPushButton("Зарегистрироваться")
         self.register_btn.clicked.connect(self.register)
         btn_layout.addWidget(self.register_btn)
 
         layout.addLayout(btn_layout)
         self.setLayout(layout)
 
+        # Применение стилей
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #f0f4f8;
+                font-family: Arial;
+                font-size: 14px;
+            }
+            QLineEdit {
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #ffffff;
+            }
+            QPushButton {
+                background-color: #4a90e2;
+                color: white;
+                padding: 10px;
+                border: none;
+                border-radius: 5px;
+            }
+            QPushButton:hover {
+                background-color: #357abd;
+            }
+            QLabel {
+                color: #333;
+            }
+            QComboBox {
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #ffffff;
+            }
+        """)
+
     def login(self):
         username = self.username.text().strip()
         password = self.password.text().strip()
         if not username or not password:
-            QMessageBox.warning(self, "Input Error", "Username and password are required")
+            QMessageBox.warning(self, "Ошибка ввода", "Требуются имя пользователя и пароль")
             return
 
         try:
@@ -59,16 +105,16 @@ class LoginForm(QWidget):
             token = data["access_token"]
             role = data["role"]
             self.on_login_success(token, role)
-            QMessageBox.information(self, "Success", f"Logged in as {username} ({role})")
+            QMessageBox.information(self, "Успех", f"Вы вошли как {username} ({'Администратор' if role == 'admin' else 'Пользователь'})")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Login failed: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", f"Не удалось войти: {str(e)}")
 
     def register(self):
         username = self.username.text().strip()
         password = self.password.text().strip()
-        role = self.role.currentText()
+        role = "admin" if self.role.currentText() == "Администратор" else "user"
         if not username or not password:
-            QMessageBox.warning(self, "Input Error", "Username and password are required")
+            QMessageBox.warning(self, "Ошибка ввода", "Требуются имя пользователя и пароль")
             return
 
         try:
@@ -78,6 +124,6 @@ class LoginForm(QWidget):
                 "role": role
             })
             response.raise_for_status()
-            QMessageBox.information(self, "Success", "Registration successful. Please log in.")
+            QMessageBox.information(self, "Успех", "Регистрация прошла успешно. Пожалуйста, войдите.")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Registration failed: {str(e)}")
+            QMessageBox.critical(self, "Ошибка", f"Не удалось зарегистрироваться: {str(e)}")

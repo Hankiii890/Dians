@@ -61,6 +61,7 @@ class Database:
                     addon_ids TEXT,
                     masterclass_ids TEXT,
                     total_price INTEGER NOT NULL,
+                    completed INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (program_id) REFERENCES programs(id)
                 )
             """)
@@ -73,6 +74,11 @@ class Database:
                     role TEXT NOT NULL CHECK(role IN ('admin', 'user'))
                 )
             """)
+            # Add completed column if not exists
+            cursor.execute("PRAGMA table_info(bookings)")
+            columns = [col[1] for col in cursor.fetchall()]
+            if "completed" not in columns:
+                cursor.execute("ALTER TABLE bookings ADD COLUMN completed INTEGER NOT NULL DEFAULT 0")
             # Check if default admin exists
             cursor.execute("SELECT COUNT(*) FROM users WHERE role = 'admin'")
             if cursor.fetchone()[0] == 0:
