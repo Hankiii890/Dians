@@ -1,7 +1,6 @@
 import requests
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem, QPushButton, QInputDialog, QMessageBox
 
-
 class AdminPanel(QWidget):
     def __init__(self):
         super().__init__()
@@ -54,12 +53,19 @@ class AdminPanel(QWidget):
         layout.addWidget(self.delete_masterclass_btn)
 
         self.setLayout(layout)
-        self.load_bookings()
+        # Убрано self.load_bookings()
+
+    def set_token(self, token):
+        self.token = token
+        self.load_bookings()  # Вызываем только после установки токена
 
     def load_bookings(self):
         try:
+            print(f"Token used for request: {self.token}")  # Отладка
             headers = {"Authorization": f"Bearer {self.token}"}
+            print(f"Sending request to http://localhost:8000/bookings/ with headers: {headers}")  # Отладка
             response = requests.get("http://localhost:8000/bookings/", headers=headers)
+            print(f"Response status: {response.status_code}, Response text: {response.text}")  # Отладка
             response.raise_for_status()
             bookings = response.json()
             self.table.setRowCount(len(bookings))

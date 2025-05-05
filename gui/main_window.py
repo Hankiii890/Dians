@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import QMainWindow, QTabWidget
 from gui.login_form import LoginForm
 from gui.booking_form import BookingForm
 from gui.admin_panel import AdminPanel
+from PyQt5.QtCore import QTimer  # Добавьте этот импорт
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -31,8 +33,23 @@ class MainWindow(QMainWindow):
 
     def on_login_success(self, token, role):
         self.token = token
+
+        # Включение форм
         self.booking_form.setEnabled(True)
-        self.booking_form.token = token  # Pass token to booking form
+        self.booking_form.token = token
         self.admin_panel.setEnabled(role == "admin")
-        self.admin_panel.token = token  # Pass token to admin panel
-        self.tabs.setCurrentIndex(1)  # Switch to booking tab
+        self.admin_panel.token = token
+
+        # Функция для установки токенов
+        def set_tokens():
+            self.booking_form.set_token(token)
+            if role == "admin":
+                self.admin_panel.set_token(token)
+
+        # Функция для переключения таба
+        def switch_tab():
+            self.tabs.setCurrentIndex(1)
+
+        # Запускаем с задержкой
+        QTimer.singleShot(1000, set_tokens)
+        QTimer.singleShot(1000, switch_tab)

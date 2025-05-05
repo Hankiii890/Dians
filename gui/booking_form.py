@@ -2,12 +2,12 @@ import requests
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QPushButton, QCheckBox, QDateEdit, QMessageBox
 from PyQt5.QtCore import QDate
 
+
 class BookingForm(QWidget):
     def __init__(self):
         super().__init__()
         self.token = None  # Store the token
         self.init_ui()
-        self.load_data()
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -66,6 +66,10 @@ class BookingForm(QWidget):
         layout.addWidget(self.submit_btn)
 
         self.setLayout(layout)
+
+    def set_token(self, token):
+        self.token = token
+        self.load_data()    # Загрузка данных только после установки токена
 
     def load_data(self):
         try:
