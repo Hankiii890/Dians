@@ -3,6 +3,9 @@ from gui.login_form import LoginForm
 from gui.booking_form import BookingForm
 from gui.admin_panel import AdminPanel
 from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QPalette, QBrush, QPixmap
+from PyQt5.QtCore import Qt
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -30,12 +33,20 @@ class MainWindow(QMainWindow):
         self.admin_panel.setEnabled(False)
         self.tabs.addTab(self.admin_panel, "Панель администратора")
 
-        # Применение стилей
+        # Set background image using QPalette
+        palette = QPalette()
+        pixmap = QPixmap("static/images/Fon_application.jpg")
+        pixmap = pixmap.scaled(self.size(), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        brush = QBrush(pixmap)
+        palette.setBrush(QPalette.Window, brush)
+        self.setPalette(palette)
+
+        # Apply stylesheet for transparency and tab styling
         self.setStyleSheet("""
             QTabWidget::pane {
                 border: 1px solid #ccc;
                 border-radius: 5px;
-                background-color: #f9f9f9;
+                background: transparent;
             }
             QTabBar::tab {
                 background-color: #e0e0e0;
@@ -48,7 +59,19 @@ class MainWindow(QMainWindow):
                 background-color: #4a90e2;
                 color: white;
             }
+            QWidget {
+                background: transparent;
+            }
         """)
+
+    def resizeEvent(self, event):
+        # Update background image on resize
+        palette = self.palette()
+        pixmap = QPixmap("static/images/Fon_application.jpg").scaled(self.size(), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        brush = QBrush(pixmap)
+        palette.setBrush(QPalette.Window, brush)
+        self.setPalette(palette)
+        super().resizeEvent(event)
 
     def on_login_success(self, token, role):
         self.token = token
@@ -67,3 +90,12 @@ class MainWindow(QMainWindow):
 
         QTimer.singleShot(1000, set_tokens)
         QTimer.singleShot(1000, switch_tab)
+
+
+if __name__ == "__main__":
+    from PyQt5.QtWidgets import QApplication
+    import sys
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
