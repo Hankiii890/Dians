@@ -2,7 +2,6 @@ import requests
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QComboBox, QMessageBox, QGridLayout
 from PyQt5.QtCore import Qt
 
-
 class LoginForm(QWidget):
     def __init__(self, on_login_success):
         super().__init__()
@@ -32,10 +31,13 @@ class LoginForm(QWidget):
         grid.addWidget(QLabel("Пароль:"), 1, 0)
         grid.addWidget(self.password, 1, 1)
 
-        # Role (for registration)
+        # Role (for registration) - initially hidden
+        self.role_label = QLabel("Роль (для регистрации):")
         self.role = QComboBox()
         self.role.addItems(["Пользователь", "Администратор"])
-        grid.addWidget(QLabel("Роль (для регистрации):"), 2, 0)
+        self.role_label.setVisible(False)
+        self.role.setVisible(False)
+        grid.addWidget(self.role_label, 2, 0)
         grid.addWidget(self.role, 2, 1)
 
         layout.addLayout(grid)
@@ -48,8 +50,13 @@ class LoginForm(QWidget):
         btn_layout.addWidget(self.login_btn)
 
         self.register_btn = QPushButton("Зарегистрироваться")
-        self.register_btn.clicked.connect(self.register)
+        self.register_btn.clicked.connect(self.show_register_fields)
         btn_layout.addWidget(self.register_btn)
+
+        self.register_confirm_btn = QPushButton("Подтвердить регистрацию")
+        self.register_confirm_btn.clicked.connect(self.register)
+        self.register_confirm_btn.setVisible(False)
+        btn_layout.addWidget(self.register_confirm_btn)
 
         layout.addLayout(btn_layout)
         self.setLayout(layout)
@@ -88,6 +95,12 @@ class LoginForm(QWidget):
             }
         """)
 
+    def show_register_fields(self):
+        self.role_label.setVisible(True)
+        self.role.setVisible(True)
+        self.register_btn.setVisible(False)
+        self.register_confirm_btn.setVisible(True)
+
     def login(self):
         username = self.username.text().strip()
         password = self.password.text().strip()
@@ -125,5 +138,10 @@ class LoginForm(QWidget):
             })
             response.raise_for_status()
             QMessageBox.information(self, "Успех", "Регистрация прошла успешно. Пожалуйста, войдите.")
+            # Скрываем поле роли после успешной регистрации
+            self.role_label.setVisible(False)
+            self.role.setVisible(False)
+            self.register_btn.setVisible(True)
+            self.register_confirm_btn.setVisible(False)
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Не удалось зарегистрироваться: {str(e)}")

@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
         # Admin Panel Tab
         self.admin_panel = AdminPanel()
         self.admin_panel.setEnabled(False)
+        self.tabs.setTabEnabled(self.tabs.indexOf(self.admin_panel), False)  # Initially disabled
         self.tabs.addTab(self.admin_panel, "Панель администратора")
 
         # Set background image using QPalette
@@ -67,7 +68,8 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, event):
         # Update background image on resize
         palette = self.palette()
-        pixmap = QPixmap("static/images/Fon_application.jpg").scaled(self.size(), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+        pixmap = QPixmap("static/images/Fon_application.jpg").scaled(self.size(), Qt.IgnoreAspectRatio,
+                                                                     Qt.SmoothTransformation)
         brush = QBrush(pixmap)
         palette.setBrush(QPalette.Window, brush)
         self.setPalette(palette)
@@ -75,26 +77,29 @@ class MainWindow(QMainWindow):
 
     def on_login_success(self, token, role):
         self.token = token
-        self.booking_form.setEnabled(True)
-        self.booking_form.token = token
-        self.admin_panel.setEnabled(role == "admin")
-        self.admin_panel.token = token
 
-        def set_tokens():
+        # Отключаем обе вкладки перед настройкой
+        self.booking_form.setEnabled(False)
+        self.admin_panel.setEnabled(False)
+
+        # Настройка вкладок в зависимости от роли
+        if role == "admin":
+            self.admin_panel.setEnabled(True)
+            self.tabs.setTabEnabled(self.tabs.indexOf(self.booking_form), False)  # Отключаем вкладку "Создать заказ"
+            self.admin_panel.set_token(token)
+            self.tabs.setCurrentIndex(self.tabs.indexOf(self.admin_panel))  # Переключаемся на панель администратора
+        else:
+            self.booking_form.setEnabled(True)
+            self.tabs.setTabEnabled(self.tabs.indexOf(self.admin_panel),
+                                    False)  # Отключаем вкладку "Панель администратора"
             self.booking_form.set_token(token)
-            if role == "admin":
-                self.admin_panel.set_token(token)
-
-        def switch_tab():
-            self.tabs.setCurrentIndex(1)
-
-        QTimer.singleShot(1000, set_tokens)
-        QTimer.singleShot(1000, switch_tab)
+            self.tabs.setCurrentIndex(self.tabs.indexOf(self.booking_form))  # Переключаемся на форму бронирования
 
 
 if __name__ == "__main__":
     from PyQt5.QtWidgets import QApplication
     import sys
+
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()
